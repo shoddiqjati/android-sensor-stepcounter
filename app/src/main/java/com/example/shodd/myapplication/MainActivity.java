@@ -1,6 +1,7 @@
 package com.example.shodd.myapplication;
 
 import android.content.Context;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,6 +17,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAccelerometer;
     private Sensor mGyroscope;
     private Sensor mStepCounter;
+
+    private double step;
+    public static final float INIT_STEP_VALUE = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +40,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        double x = event.values[0];
+//        double x = event.values[0];
         //1m
-        stepCounter.setText(String.valueOf(x));
+        step = event.values[0];
+        String distance = String.valueOf(step) + "m";
+        stepCounter.setText(distance);
     }
 
     @Override
@@ -50,5 +56,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         valX.setText(x);
         valY.setText(y);
         valZ.setText(z);
+    }
+
+    @Override
+    protected void onStop() {
+        sensorManager.unregisterListener(this);
+        sensorManager.flush(this);
+        super.onStop();
     }
 }
