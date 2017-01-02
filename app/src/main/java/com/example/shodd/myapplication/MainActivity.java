@@ -18,8 +18,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mGyroscope;
     private Sensor mStepCounter;
 
-    private double step;
-    public static final float INIT_STEP_VALUE = 0;
+    private double initStep;
+    public static float INIT_STEP_VALUE = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +40,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        double step;
+        double distance;
 //        double x = event.values[0];
         //1m
-        step = event.values[0];
-        String distance = String.valueOf(step) + "m";
-        stepCounter.setText(distance);
+        if (INIT_STEP_VALUE == 0) {
+            initStep = event.values[0];
+            step = initStep - initStep;
+            INIT_STEP_VALUE = 1;
+        } else {
+            step = event.values[0] - initStep;
+            distance = step * 0.6096;
+            String strDistance = String.valueOf(distance) + "m";
+            stepCounter.setText(strDistance);
+        }
     }
 
     @Override
@@ -62,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onStop() {
         sensorManager.unregisterListener(this);
         sensorManager.flush(this);
+        INIT_STEP_VALUE = 1;
         super.onStop();
     }
 }
