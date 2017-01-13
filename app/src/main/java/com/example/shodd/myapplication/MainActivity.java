@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
-    private TextView valX, valY, valZ, stepCounter;
+    private TextView valX, valY, valZ, stepCounter, sevenfiveTV, speedTV;
     private SensorManager sensorManager;
     private Sensor mAccelerometer;
     private Sensor mGyroscope;
@@ -20,6 +20,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private double initStep;
     public static float INIT_STEP_VALUE = 0;
+    private static int BLUE_STATE = 0;
+    long tStart;
+    long tEnd;
+    double delta, velocity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,18 +34,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         valY = (TextView) findViewById(R.id.valy);
         valZ = (TextView) findViewById(R.id.valz);
         stepCounter = (TextView) findViewById(R.id.stepCounterTV);
+        sevenfiveTV = (TextView) findViewById(R.id.sevenfiveTV);
+        speedTV = (TextView) findViewById(R.id.speedTV);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 //        mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 //        mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         mStepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-        sensorManager.registerListener(this, mStepCounter, SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(this, mStepCounter, SensorManager.SENSOR_DELAY_NORMAL);
+        tStart = System.currentTimeMillis();
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         double step;
-        double distance;
+        double distanceA, distanceB;
+        tEnd = System.currentTimeMillis();
+        delta = tEnd - tStart;
 //        double x = event.values[0];
         //1m
         if (INIT_STEP_VALUE == 0) {
@@ -50,9 +59,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             INIT_STEP_VALUE = 1;
         } else {
             step = event.values[0] - initStep;
-            distance = step * 0.6096;
-            String strDistance = String.valueOf(distance) + "m";
-            stepCounter.setText(strDistance);
+            distanceA = step * 0.6096;
+            distanceB = step * 0.75;
+            velocity = (distanceB / delta) / 1000;
+            String strDistanceA = String.format("%.2f", distanceA) + "m";
+            String strDistanceB = String.format("%.2f", distanceB) + "m";
+            String strVelocity = String.valueOf(velocity) + "m/s";
+            stepCounter.setText(strDistanceA);
+            sevenfiveTV.setText(strDistanceB);
+            speedTV.setText(strVelocity);
         }
     }
 
@@ -73,5 +88,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensorManager.flush(this);
         INIT_STEP_VALUE = 1;
         super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        INIT_STEP_VALUE = 0;
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 }
